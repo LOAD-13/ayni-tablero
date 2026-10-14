@@ -1,0 +1,34 @@
+name: Tablero
+
+on:
+  schedule:
+    - cron: "0 11 * * *"   # 06:00 en Lima, todos los días
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tablero
+  cancel-in-progress: false
+
+jobs:
+  generar:
+    name: Leer Jira y publicar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generar el tablero
+        env:
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+        run: python generar.py
+      - name: Guardar la instantánea del día
+        run: |
+          git config user.name "LOAD-13"
+          git config user.email "jloadenegri@gmail.com"
+          git add historico.json docs/
+          git diff --cached --quiet || git commit -m "chore(tablero): instantanea del $(TZ=America/Lima date +%F)"
+          git push

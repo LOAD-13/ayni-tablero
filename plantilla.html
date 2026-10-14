@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tablero de avance · Ayni Bank</title>
+<style>
+:root{color-scheme:light;--bg:#f6f7f8;--surface:#fcfcfb;--line:#e4e3df;--grid:#ecebe7;--t1:#0b0b0b;--t2:#52514e;--t3:#7a7975;
+ --brand:#064475;--s1:#2a78d6;--s2:#1baf7a;--rest:#e4e3df;--warn:#b26b00;--bad:#c4312f;--good:#0f7a52;--hover:rgba(42,120,214,.08)}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){color-scheme:dark;--bg:#111110;--surface:#1a1a19;--line:#33332f;
+ --grid:#262624;--t1:#fff;--t2:#c3c2b7;--t3:#8d8c84;--brand:#8fc1ea;--s1:#3987e5;--s2:#199e70;--rest:#383835;--warn:#e0a03a;--bad:#ff7b72;--good:#4fbf8b;--hover:rgba(57,135,229,.14)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#111110;--surface:#1a1a19;--line:#33332f;--grid:#262624;--t1:#fff;--t2:#c3c2b7;--t3:#8d8c84;
+ --brand:#8fc1ea;--s1:#3987e5;--s2:#199e70;--rest:#383835;--warn:#e0a03a;--bad:#ff7b72;--good:#4fbf8b;--hover:rgba(57,135,229,.14)}
+*{box-sizing:border-box;margin:0}
+body{font:14px/1.5 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--t1)}
+header{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 16px;position:sticky;top:0;z-index:5}
+.cab{max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+h1{font-size:18px;color:var(--brand)} .sub{font-size:12px;color:var(--t2)}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+select,input[type=search],button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--t1)}
+button{cursor:pointer} button:hover{border-color:var(--s1)}
+main{max-width:1280px;margin:0 auto;padding:16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile b{display:block;font-size:26px;line-height:1.15;font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--t2)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;min-width:0}
+.card h2{font-size:15px;margin-bottom:2px} .card .nota{font-size:12px;color:var(--t2);margin-bottom:10px}
+.leyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--t2);margin:4px 0 8px}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+svg{display:block;max-width:100%;overflow:visible}
+svg text{fill:var(--t2);font-size:11px;font-family:inherit} svg .t1{fill:var(--t1)}
+.ax{stroke:var(--line)} .gr{stroke:var(--grid)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--t2);font-weight:600;border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--grid);padding:6px 8px;vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tabla{overflow-x:auto}
+a{color:var(--s1);text-decoration:none} a:hover{text-decoration:underline}
+.pill{font-size:11px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);white-space:nowrap}
+.pill.done{color:var(--good);border-color:currentColor}.pill.indeterminate{color:var(--warn);border-color:currentColor}
+.ok{color:var(--good)} .mal{color:var(--bad)} .med{color:var(--warn)}
+#tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--t1);border:1px solid var(--line);border-radius:8px;
+ padding:7px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:20;max-width:260px}
+#tip b{display:block;margin-bottom:2px}
+.vacio{color:var(--t3);font-size:13px;padding:14px 0}
+footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;color:var(--t3)}
+</style>
+</head>
+<body>
+<header><div class="cab">
+ <div><h1>Tablero de avance · Ayni Bank</h1><div class="sub" id="gen"></div></div>
+ <div class="filtros">
+  <label class="sub" for="fSprint">Sprint</label><select id="fSprint"></select>
+  <label class="sub" for="fPersona">Persona</label><select id="fPersona"></select>
+  <button id="tema" type="button">Tema</button>
+ </div></div></header>
+<main>
+ <div class="tiles" id="tiles"></div>
+ <div class="card"><h2>Reparto por persona</h2>
+  <div class="nota">Story points de las tareas hoja (subtareas y tareas sin subtareas) asignadas a cada integrante en el filtro elegido. La línea marca la cuota equitativa (total ÷ 6).</div>
+  <div class="leyenda"><span><i style="background:var(--s1)"></i>Terminado</span><span><i style="background:var(--s2)"></i>En curso</span><span><i style="background:var(--rest)"></i>Por hacer</span></div>
+  <div id="personas"></div><div class="tabla" id="tPersonas"></div></div>
+ <div class="grid2">
+  <div class="card"><h2>Burnup del proyecto</h2><div class="nota">Alcance (story points creados) frente a lo terminado, día a día.</div>
+   <div class="leyenda"><span><i style="background:var(--t3)"></i>Alcance</span><span><i style="background:var(--s1)"></i>Terminado</span></div><div id="burnup"></div></div>
+  <div class="card"><h2 id="tBurn">Burndown del sprint</h2><div class="nota">Story points pendientes frente a la línea ideal.</div>
+   <div class="leyenda"><span><i style="background:var(--t3)"></i>Ideal</span><span><i style="background:var(--s1)"></i>Pendiente real</span></div><div id="burndown"></div></div>
+ </div>
+ <div class="grid2">
+  <div class="card"><h2>Velocidad por sprint</h2><div class="nota">Story points terminados dentro de cada sprint.</div><div id="velocidad"></div></div>
+  <div class="card"><h2>Avance por épica</h2><div class="nota">Porcentaje de story points terminados.</div><div id="epicas"></div></div>
+ </div>
+ <div class="card"><h2>Histórico de avance</h2><div class="nota">Una instantánea por día, guardada al regenerar el tablero.</div><div class="tabla" id="historico"></div></div>
+ <div class="card"><h2>Detalle de tareas</h2><div class="nota">«Validada» = el Scrum Master revisó el trabajo (etiqueta <code>validada-sm</code> en Jira).</div>
+  <input type="search" id="busca" placeholder="Buscar por clave o resumen" style="width:min(380px,100%);margin-bottom:8px">
+  <div class="tabla" id="detalle"></div></div>
+</main>
+<footer id="pie"></footer>
+<div id="tip" role="tooltip"></div>
+<script>
+const D=/*__DATOS__*/null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const corto=n=>n.split(" ").slice(0,2).join(" ");
+const hoy=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Lima"})).toISOString().slice(0,10);
+const tip=$("#tip");
+function mostrar(ev,html){tip.innerHTML=html;tip.style.display="block";const x=Math.min(ev.clientX+14,innerWidth-270);tip.style.left=x+"px";tip.style.top=(ev.clientY+14)+"px"}
+function ocultar(){tip.style.display="none"}
+// Tema
+const raiz=document.documentElement;
+try{const t=localStorage.getItem("tablero-tema");if(t)raiz.dataset.theme=t}catch(e){}
+$("#tema").onclick=()=>{const osc=raiz.dataset.theme?raiz.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+ raiz.dataset.theme=osc?"light":"dark";try{localStorage.setItem("tablero-tema",raiz.dataset.theme)}catch(e){}};
+// Filtros
+const sprintNombre=id=>(D.sprints.find(s=>s.id===id)||{}).nombre||"Sin sprint";
+const activo=D.sprints.find(s=>s.estado==="active");
+$("#fSprint").innerHTML='<option value="">Todo el proyecto</option>'+D.sprints.map(s=>`<option value="${s.id}">${esc(s.nombre)}${s.estado==="active"?" (activo)":""}</option>`).join("");
+$("#fPersona").innerHTML='<option value="">Todo el equipo</option>'+D.equipo.map(p=>`<option>${esc(p)}</option>`).join("");
+$("#gen").textContent=`Datos de Jira (${D.proyecto}) al ${D.generado} · ${D.filas.length} incidencias`;
+const hojas=D.filas.filter(f=>f.hoja);
+function filtradas(){const s=$("#fSprint").value,p=$("#fPersona").value;
+ return hojas.filter(f=>(!s||f.sprint==+s)&&(!p||f.resp===p))}
+// Utilidades de gráfico
+function escala(d0,d1,r0,r1){return v=>r0+(v-d0)/((d1-d0)||1)*(r1-r0)}
+function dias(a,b){const r=[];for(let d=new Date(a);d<=new Date(b);d.setDate(d.getDate()+1))r.push(d.toISOString().slice(0,10));return r}
+function lineas(cont,serie,{fechas,series,marcaHoy=true}){
+ const W=Math.max(300,$("#"+cont).clientWidth),H=240,m={l:38,r:12,t:12,b:26};
+ const max=Math.max(1,...series.flatMap(s=>s.v.filter(v=>v!=null)));
+ const x=escala(0,fechas.length-1,m.l,W-m.r),y=escala(0,max*1.08,H-m.b,m.t);
+ let g="";const pasos=4;
+ for(let i=0;i<=pasos;i++){const v=Math.round(max*1.08*i/pasos),yy=y(v);g+=`<line class="gr" x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}"/><text x="${m.l-6}" y="${yy+4}" text-anchor="end">${v}</text>`}
+ const cada=Math.max(1,Math.ceil(fechas.length/6));
+ fechas.forEach((f,i)=>{if(i%cada===0)g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${f.slice(8,10)}/${f.slice(5,7)}</text>`});
+ const ih=fechas.indexOf(hoy);if(marcaHoy&&ih>=0)g+=`<line x1="${x(ih)}" x2="${x(ih)}" y1="${m.t}" y2="${H-m.b}" stroke="var(--t3)" stroke-dasharray="3 3"/><text x="${x(ih)+4}" y="${m.t+10}">hoy</text>`;
+ series.forEach(s=>{let d="",p=false;s.v.forEach((v,i)=>{if(v==null){p=false;return}d+=(p?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);p=true});
+  g+=`<path d="${d}" fill="none" stroke="${s.c}" stroke-width="2" ${s.dash?'stroke-dasharray="5 4"':""} stroke-linejoin="round"/>`;
+  const ult=s.v.map((v,i)=>[v,i]).filter(a=>a[0]!=null).pop();if(ult)g+=`<text class="t1" x="${Math.min(x(ult[1])+4,W-40)}" y="${y(ult[0])-6}">${ult[0]}</text>`});
+ g+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${H-m.b}" y2="${H-m.b}"/>`;
+ g+=`<line id="${cont}-cx" stroke="var(--t3)" y1="${m.t}" y2="${H-m.b}" style="display:none"/><rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${H-m.t-m.b}" fill="transparent" id="${cont}-hit"/>`;
+ $("#"+cont).innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(serie)}">${g}</svg>`;
+ const svg=$("#"+cont+" svg"),cx=$("#"+cont+"-cx");
+ $("#"+cont+"-hit").onmousemove=ev=>{const r=svg.getBoundingClientRect(),px=(ev.clientX-r.left)/r.width*W;
+  const i=Math.max(0,Math.min(fechas.length-1,Math.round((px-m.l)/((W-m.l-m.r)/((fechas.length-1)||1)))));
+  cx.setAttribute("x1",x(i));cx.setAttribute("x2",x(i));cx.style.display="";
+  mostrar(ev,`<b>${fechas[i].split("-").reverse().join("/")}</b>`+series.map(s=>`${s.n}: <b style="display:inline">${s.v[i]??"—"}</b>`).join("<br>"))};
+ $("#"+cont+"-hit").onmouseleave=()=>{cx.style.display="none";ocultar()};
+}
+function barrasH(cont,filas,{max,cuota,fmt=v=>v}){
+ const W=Math.max(300,$("#"+cont).clientWidth),fh=30,m={l:W<480?96:150,r:60},H=filas.length*fh+10;const x=escala(0,max||1,m.l,W-m.r);let g="";
+ filas.forEach((f,i)=>{const y=i*fh+6;let x0=m.l;g+=`<text class="t1" x="${m.l-8}" y="${y+14}" text-anchor="end">${esc(f.etq)}</text>`;
+  f.partes.forEach((p,k)=>{const w=Math.max(0,x(p.v)-m.l);if(w>0){g+=`<rect x="${x0}" y="${y+2}" width="${Math.max(w-2,1)}" height="16" rx="4" fill="${p.c}" data-i="${i}" data-k="${k}"/>`;x0+=w}});
+  g+=`<text x="${Math.max(x0,m.l)+6}" y="${y+14}">${fmt(f.total)}</text>`;
+  g+=`<rect x="0" y="${y-2}" width="${W}" height="${fh-2}" fill="transparent" data-h="${i}"/>`});
+ if(cuota)g+=`<line x1="${x(cuota)}" x2="${x(cuota)}" y1="0" y2="${H-4}" stroke="var(--t1)" stroke-dasharray="4 3"/><text x="${x(cuota)+4}" y="${H+8}">cuota ${Math.round(cuota)}</text>`;
+ $("#"+cont).innerHTML=`<svg width="${W}" height="${H+14}" viewBox="0 0 ${W} ${H+14}" role="img">${g}</svg>`;
+ $("#"+cont).querySelectorAll("[data-h]").forEach(r=>{const f=filas[+r.dataset.h];
+  r.onmousemove=ev=>{r.setAttribute("fill","var(--hover)");mostrar(ev,`<b>${esc(f.etq)}</b>`+f.partes.map(p=>`${p.n}: ${p.v}`).join("<br>")+(f.extra||""))};
+  r.onmouseleave=()=>{r.setAttribute("fill","transparent");ocultar()}});
+}
+// Render
+function render(){
+ const F=filtradas(),sum=a=>a.reduce((t,f)=>t+(f.sp||0),0);
+ const total=sum(F),hecho=sum(F.filter(f=>f.cat==="done")),curso=sum(F.filter(f=>f.cat==="indeterminate"));
+ const hu=D.filas.filter(f=>f.tipo==="Historia"),huH=hu.filter(f=>f.cat==="done").length;
+ const sp=$("#fSprint").value?D.sprints.find(s=>s.id==$("#fSprint").value):activo;
+ let quedan="—";if(sp&&sp.fin){quedan=Math.max(0,Math.round((new Date(sp.fin)-new Date(hoy))/864e5))}
+ const cerrados=D.sprints.filter(s=>s.estado==="closed");
+ const vel=cerrados.length?Math.round(cerrados.reduce((t,s)=>t+sum(hojas.filter(f=>f.sprint===s.id&&f.cat==="done")),0)/cerrados.length):0;
+ const tiles=[[`${total?Math.round(hecho/total*100):0} %`,`avance · ${hecho} de ${total} SP`],[curso,"SP en curso"],[total-hecho-curso,"SP por hacer"],
+  [`${huH} / ${hu.length}`,"historias de usuario terminadas"],[vel,"velocidad media (SP por sprint cerrado)"],[sp?quedan:"—",sp?`días para cerrar ${esc(sp.nombre.split("·")[0])}`:"sin sprint activo"]];
+ $("#tiles").innerHTML=tiles.map(t=>`<div class="tile"><b>${t[0]}</b><span>${t[1]}</span></div>`).join("");
+ // Personas
+ const s=$("#fSprint").value;const base=hojas.filter(f=>!s||f.sprint==+s);
+ const pers=D.equipo.map(p=>{const a=base.filter(f=>f.resp===p);const h=sum(a.filter(f=>f.cat==="done")),c=sum(a.filter(f=>f.cat==="indeterminate")),t=sum(a);
+  return {etq:corto(p),nombre:p,total:t,h,c,n:a.length,val:a.filter(f=>f.validada).length,hechas:a.filter(f=>f.cat==="done").length,
+   partes:[{n:"Terminado",v:h,c:"var(--s1)"},{n:"En curso",v:c,c:"var(--s2)"},{n:"Por hacer",v:t-h-c,c:"var(--rest)"}]}});
+ const tEq=pers.reduce((t,p)=>t+p.total,0),cuota=tEq/D.equipo.length;
+ barrasH("personas",pers,{max:Math.max(...pers.map(p=>p.total),cuota),cuota,fmt:v=>v+" SP"});
+ $("#tPersonas").innerHTML=`<table><thead><tr><th>Integrante</th><th class="n">Tareas</th><th class="n">SP asignados</th><th class="n">vs. cuota</th><th class="n">SP terminados</th><th class="n">% propio</th><th class="n">Validadas</th></tr></thead><tbody>`+
+  pers.map(p=>{const d=p.total-cuota,cl=Math.abs(d)<=cuota*.1?"ok":(Math.abs(d)<=cuota*.25?"med":"mal");
+   return `<tr><td>${esc(p.nombre)}</td><td class="n">${p.n}</td><td class="n">${p.total}</td><td class="n ${cl}">${d>=0?"+":""}${Math.round(d)}</td><td class="n">${p.h}</td><td class="n">${p.total?Math.round(p.h/p.total*100):0} %</td><td class="n">${p.val} / ${p.hechas}</td></tr>`}).join("")+`</tbody></table>`;
+ // Burnup (todo el proyecto, o la persona elegida)
+ const p=$("#fPersona").value,HP=hojas.filter(f=>!p||f.resp===p);
+ const ini=D.sprints.length?D.sprints[0].inicio:hoy,fin=D.sprints.length?D.sprints[D.sprints.length-1].fin:hoy;
+ const fs=dias(ini,fin);
+ lineas("burnup","Burnup",{fechas:fs,series:[
+  {n:"Alcance",c:"var(--t3)",dash:true,v:fs.map(d=>d>hoy?null:sum(HP.filter(f=>f.creado<=d)))},
+  {n:"Terminado",c:"var(--s1)",v:fs.map(d=>d>hoy?null:sum(HP.filter(f=>f.hecho&&f.hecho<=d)))}]});
+ // Burndown
+ if(sp&&sp.inicio){$("#tBurn").textContent="Burndown · "+sp.nombre;
+  const I=HP.filter(f=>f.sprint===sp.id),T=sum(I),fd=dias(sp.inicio,sp.fin);
+  lineas("burndown","Burndown",{fechas:fd,series:[
+   {n:"Ideal",c:"var(--t3)",dash:true,v:fd.map((d,i)=>Math.round(T*(1-i/((fd.length-1)||1))))},
+   {n:"Pendiente",c:"var(--s1)",v:fd.map(d=>d>hoy?null:T-sum(I.filter(f=>f.hecho&&f.hecho<=d)))}]});
+ }else{$("#burndown").innerHTML='<p class="vacio">Elige un sprint con fechas para ver su burndown.</p>'}
+ // Velocidad
+ const vf=D.sprints.map(s=>{const I=HP.filter(f=>f.sprint===s.id);const h=sum(I.filter(f=>f.cat==="done"));
+  return {etq:s.nombre.split("·")[0].trim(),total:sum(I),partes:[{n:"Terminado",v:h,c:"var(--s1)"},{n:"Sin terminar",v:sum(I)-h,c:"var(--rest)"}],extra:`<br>${esc(s.nombre)}`}});
+ barrasH("velocidad",vf,{max:Math.max(1,...vf.map(v=>v.total)),fmt:v=>v+" SP"});
+ // Épicas
+ const ef=Object.entries(D.epicas).map(([k,n])=>{const I=HP.filter(f=>f.epica===k);const h=sum(I.filter(f=>f.cat==="done")),t=sum(I);
+  return {etq:n.split("·")[0].trim(),total:t?Math.round(h/t*100):0,partes:[{n:"Terminado %",v:t?Math.round(h/t*100):0,c:"var(--s1)"},{n:"Pendiente %",v:t?100-Math.round(h/t*100):0,c:"var(--rest)"}],extra:`<br>${esc(n)}<br>${h} de ${t} SP`}}).filter(e=>e.partes[0].v+e.partes[1].v>0);
+ barrasH("epicas",ef,{max:100,fmt:v=>v+" %"});
+ // Histórico
+ const H=[...D.historico].reverse();
+ $("#historico").innerHTML=H.length?`<table><thead><tr><th>Fecha</th><th class="n">Avance</th><th class="n">SP terminados</th><th class="n">SP totales</th><th class="n">Abiertas</th>${D.equipo.map(p=>`<th class="n">${esc(corto(p))}</th>`).join("")}</tr></thead><tbody>`+
+  H.map(h=>`<tr><td>${h.fecha.split("-").reverse().join("/")}</td><td class="n">${h.sp_total?Math.round(h.sp_hecho/h.sp_total*100):0} %</td><td class="n">${h.sp_hecho}</td><td class="n">${h.sp_total}</td><td class="n">${h.abiertas}</td>`+
+   D.equipo.map(p=>{const x=h.por_persona[p]||{hecho:0,total:0};return `<td class="n">${x.hecho} / ${x.total}</td>`}).join("")+`</tr>`).join("")+`</tbody></table>`:'<p class="vacio">Aún no hay instantáneas.</p>';
+ detalle();
+}
+function detalle(){
+ const q=$("#busca").value.trim().toLowerCase();
+ const F=filtradas().filter(f=>!q||f.clave.toLowerCase().includes(q)||f.resumen.toLowerCase().includes(q));
+ const orden={indeterminate:0,new:1,done:2};F.sort((a,b)=>orden[a.cat]-orden[b.cat]||a.clave.localeCompare(b.clave,"es",{numeric:true}));
+ $("#detalle").innerHTML=F.length?`<table><thead><tr><th>Clave</th><th>Resumen</th><th>Responsable</th><th>Sprint</th><th class="n">SP</th><th>Estado</th><th>Validada</th></tr></thead><tbody>`+
+  F.slice(0,400).map(f=>`<tr><td><a href="${D.sitio}/browse/${f.clave}" target="_blank" rel="noopener">${f.clave}</a></td><td>${esc(f.resumen)}</td><td>${esc(corto(f.resp))}</td><td>${esc(sprintNombre(f.sprint).split("·")[0])}</td><td class="n">${f.sp||"—"}</td><td><span class="pill ${f.cat}">${esc(f.estado)}</span></td><td>${f.validada?'<span class="ok">✓ Sí</span>':(f.cat==="done"?'<span class="med">Pendiente</span>':"—")}</td></tr>`).join("")+`</tbody></table>`:'<p class="vacio">Ninguna tarea coincide con el filtro.</p>';
+}
+$("#fSprint").onchange=render;$("#fPersona").onchange=render;$("#busca").oninput=detalle;
+$("#pie").textContent="Generado automáticamente desde la API de Jira. Lo terminado antes de crear su registro en Jira usa su fecha real de entrega (etiqueta registro-retroactivo).";
+render();
+let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(render,150)});
+</script>
+</body>
+</html>
