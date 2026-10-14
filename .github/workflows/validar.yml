@@ -1,0 +1,48 @@
+name: Validar
+
+run-name: "Validación (${{ inputs.accion }}) por ${{ github.actor }}: ${{ inputs.claves }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      claves:
+        description: "Claves de Jira separadas por comas (AYNI-12,AYNI-40)"
+        required: true
+        type: string
+      accion:
+        description: "validar o quitar"
+        required: true
+        type: choice
+        options: [validar, quitar]
+
+permissions:
+  contents: write
+
+jobs:
+  validar:
+    name: Etiquetar en Jira y republicar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Etiquetar en Jira
+        env:
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+          CLAVES: ${{ inputs.claves }}
+          ACCION: ${{ inputs.accion }}
+        run: python validar.py
+      - name: Regenerar el tablero
+        env:
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+        run: python generar.py
+      - name: Publicar
+        run: |
+          git config user.name "LOAD-13"
+          git config user.email "jloadenegri@gmail.com"
+          git add historico.json docs/
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(tablero): validacion de tareas"
+          for i in 1 2 3; do git pull --rebase -X theirs && git push && exit 0; sleep 5; done
+          exit 1

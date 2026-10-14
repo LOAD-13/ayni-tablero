@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>Tablero de avance · Ayni Bank</title>
 <style>
 :root{color-scheme:light;--bg:#f6f7f8;--surface:#fcfcfb;--line:#e4e3df;--grid:#ecebe7;--t1:#0b0b0b;--t2:#52514e;--t3:#7a7975;
@@ -45,6 +47,14 @@ a{color:var(--s1);text-decoration:none} a:hover{text-decoration:underline}
  padding:7px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:20;max-width:260px}
 #tip b{display:block;margin-bottom:2px}
 .vacio{color:var(--t3);font-size:13px;padding:14px 0}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--t1);padding:20px;max-width:440px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:16px;margin-bottom:6px} dialog p{font-size:12.5px;color:var(--t2);margin:6px 0}
+dialog input{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--t1);margin:8px 0}
+.err{color:var(--bad);font-size:12.5px;min-height:18px}
+.prim{background:var(--s1);border-color:var(--s1);color:#fff}
+#barra{position:sticky;bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:10px;display:none;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.12)}
+#modo{font-size:12px;color:var(--t2)}
 footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;color:var(--t3)}
 </style>
 </head>
@@ -55,6 +65,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
   <label class="sub" for="fSprint">Sprint</label><select id="fSprint"></select>
   <label class="sub" for="fPersona">Persona</label><select id="fPersona"></select>
   <button id="tema" type="button">Tema</button>
+  <button id="revisar" type="button">Modo revisión</button><span id="modo"></span>
  </div></div></header>
 <main>
  <div class="tiles" id="tiles"></div>
@@ -75,10 +86,19 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
  <div class="card"><h2>Histórico de avance</h2><div class="nota">Una instantánea por día, guardada al regenerar el tablero.</div><div class="tabla" id="historico"></div></div>
  <div class="card"><h2>Detalle de tareas</h2><div class="nota">«Validada» = el Scrum Master revisó el trabajo (etiqueta <code>validada-sm</code> en Jira).</div>
   <input type="search" id="busca" placeholder="Buscar por clave o resumen" style="width:min(380px,100%);margin-bottom:8px">
-  <div class="tabla" id="detalle"></div></div>
+  <div class="tabla" id="detalle"></div>
+  <div id="barra"><span id="barraTxt"></span><button class="prim" id="enviar" type="button">Enviar a Jira</button><button id="limpiar" type="button">Descartar</button><span class="err" id="barraErr"></span></div></div>
 </main>
 <footer id="pie"></footer>
 <div id="tip" role="tooltip"></div>
+<dialog id="dlg"><form method="dialog">
+ <h2>Modo revisión</h2>
+ <p>Solo el Scrum Master valida tareas. Pega tu token de GitHub (fine-grained, con permiso <b>Actions: Read and write</b> sobre este repositorio).</p>
+ <p>El token se guarda solo en esta pestaña y se borra al cerrarla o tras 30 minutos sin uso. GitHub rechaza cualquier token sin ese permiso.</p>
+ <input type="password" id="pat" autocomplete="off" spellcheck="false" placeholder="github_pat_…" aria-label="Token de GitHub">
+ <div class="err" id="loginErr"></div>
+ <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button value="cancel" formnovalidate type="submit">Cancelar</button><button class="prim" id="entrar" type="button">Entrar</button></div>
+</form></dialog>
 <script>
 const D=/*__DATOS__*/null;
 const $=s=>document.querySelector(s);
@@ -195,10 +215,50 @@ function detalle(){
  const F=filtradas().filter(f=>!q||f.clave.toLowerCase().includes(q)||f.resumen.toLowerCase().includes(q));
  const orden={indeterminate:0,new:1,done:2};F.sort((a,b)=>orden[a.cat]-orden[b.cat]||a.clave.localeCompare(b.clave,"es",{numeric:true}));
  $("#detalle").innerHTML=F.length?`<table><thead><tr><th>Clave</th><th>Resumen</th><th>Responsable</th><th>Sprint</th><th class="n">SP</th><th>Estado</th><th>Validada</th></tr></thead><tbody>`+
-  F.slice(0,400).map(f=>`<tr><td><a href="${D.sitio}/browse/${f.clave}" target="_blank" rel="noopener">${f.clave}</a></td><td>${esc(f.resumen)}</td><td>${esc(corto(f.resp))}</td><td>${esc(sprintNombre(f.sprint).split("·")[0])}</td><td class="n">${f.sp||"—"}</td><td><span class="pill ${f.cat}">${esc(f.estado)}</span></td><td>${f.validada?'<span class="ok">✓ Sí</span>':(f.cat==="done"?'<span class="med">Pendiente</span>':"—")}</td></tr>`).join("")+`</tbody></table>`:'<p class="vacio">Ninguna tarea coincide con el filtro.</p>';
+  F.slice(0,400).map(f=>`<tr><td><a href="${D.sitio}/browse/${f.clave}" target="_blank" rel="noopener">${f.clave}</a></td><td>${esc(f.resumen)}</td><td>${esc(corto(f.resp))}</td><td>${esc(sprintNombre(f.sprint).split("·")[0])}</td><td class="n">${f.sp||"—"}</td><td><span class="pill ${f.cat}">${esc(f.estado)}</span></td><td>${celdaValidada(f)}</td></tr>`).join("")+`</tbody></table>`:'<p class="vacio">Ninguna tarea coincide con el filtro.</p>';
 }
+// ── Modo revisión ──────────────────────────────────────────────────────────────
+const GH="https://api.github.com",REPO=D.repo||"LOAD-13/ayni-tablero";
+const cambios=new Map();let sesion=null,inactivo;
+function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);if(v===null)sessionStorage.removeItem(k);else sessionStorage.setItem(k,v)}catch(e){return null}}
+function enProceso(){try{const p=JSON.parse(localStorage.getItem("tablero-enviadas")||"{}");const gen=(D.generado||"").replace(" ","T");
+ for(const k in p){if(p[k].t<=gen)delete p[k]}return p}catch(e){return{}}}
+function celdaValidada(f){
+ const p=enProceso()[f.clave];
+ if(p)return `<span class="med">En proceso (${p.a==="validar"?"validando":"desmarcando"})…</span>`;
+ if(f.cat!=="done")return "—";
+ if(!sesion)return f.validada?'<span class="ok">✓ Validada</span>':'<span class="med">Pendiente</span>';
+ const c=cambios.get(f.clave),marcada=c?c==="validar":f.validada;
+ return `<label style="cursor:pointer;white-space:nowrap"><input type="checkbox" data-val="${f.clave}" data-orig="${f.validada?1:0}" ${marcada?"checked":""}> ${marcada?"Validada":"Pendiente"}</label>`;
+}
+function barra(){const v=[...cambios.values()];$("#barra").style.display=(sesion&&v.length)?"flex":"none";
+ $("#barraTxt").textContent=`${v.filter(x=>x==="validar").length} por validar · ${v.filter(x=>x==="quitar").length} por desmarcar`}
+document.addEventListener("change",ev=>{const c=ev.target.closest("[data-val]");if(!c)return;tocar();
+ const k=c.dataset.val,orig=c.dataset.orig==="1";if(c.checked===orig)cambios.delete(k);else cambios.set(k,c.checked?"validar":"quitar");detalle();barra()});
+function tocar(){clearTimeout(inactivo);if(sesion)inactivo=setTimeout(()=>salir("La sesión de revisión se cerró por inactividad."),30*60*1000)}
+function salir(msg){sesion=null;ss("tablero-gh",null);cambios.clear();$("#modo").textContent=msg||"";$("#revisar").textContent="Modo revisión";detalle();barra()}
+async function gh(ruta,opc={}){return fetch(GH+ruta,{...opc,headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+sesion,"X-GitHub-Api-Version":"2022-11-28",...(opc.headers||{})}})}
+async function entrar(pat){
+ if(!/^(github_pat_|ghp_)[A-Za-z0-9_]{20,}$/.test(pat))throw new Error("Eso no parece un token de GitHub.");
+ sesion=pat;let r;try{r=await gh(`/repos/${REPO}/actions/workflows/validar.yml`)}catch(e){sesion=null;throw new Error("No se pudo contactar con GitHub.")}
+ if(!r.ok){sesion=null;throw new Error(r.status===401?"GitHub rechazó el token (caducado o inválido).":"Ese token no tiene acceso a las Actions de este repositorio.")}
+ ss("tablero-gh",pat);$("#modo").textContent="Revisando como Scrum Master";$("#revisar").textContent="Salir de revisión";tocar();detalle();barra()}
+$("#revisar").onclick=()=>{if(sesion){salir("");return}$("#loginErr").textContent="";$("#pat").value="";$("#dlg").showModal()};
+$("#entrar").onclick=async()=>{const b=$("#entrar");b.disabled=true;try{await entrar($("#pat").value.trim());$("#pat").value="";$("#dlg").close()}catch(e){$("#loginErr").textContent=e.message}finally{b.disabled=false}};
+$("#pat").onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();$("#entrar").click()}};
+$("#limpiar").onclick=()=>{cambios.clear();detalle();barra()};
+$("#enviar").onclick=async()=>{tocar();const b=$("#enviar");b.disabled=true;$("#barraErr").textContent="";
+ try{for(const accion of ["validar","quitar"]){const claves=[...cambios].filter(([,a])=>a===accion).map(([k])=>k);
+   for(let i=0;i<claves.length;i+=60){const lote=claves.slice(i,i+60);
+    const r=await gh(`/repos/${REPO}/actions/workflows/validar.yml/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs:{claves:lote.join(","),accion}})});
+    if(r.status!==204)throw new Error(r.status===401||r.status===403?"GitHub rechazó el envío: revisa el permiso Actions del token.":"GitHub respondió "+r.status+".");
+    const p=enProceso(),t=new Date(Date.now()-5*3600e3).toISOString().slice(0,16);lote.forEach(k=>{p[k]={a:accion,t};cambios.delete(k)});
+    try{localStorage.setItem("tablero-enviadas",JSON.stringify(p))}catch(e){}}}
+  $("#modo").textContent="Enviado. Jira se actualiza y el tablero se republica en 1–2 minutos.";detalle();barra()}
+ catch(e){$("#barraErr").textContent=e.message}finally{b.disabled=false}};
+(async()=>{const g=ss("tablero-gh");if(g){try{await entrar(g)}catch(e){salir("")}}})();
 $("#fSprint").onchange=render;$("#fPersona").onchange=render;$("#busca").oninput=detalle;
-$("#pie").textContent="Generado automáticamente desde la API de Jira. Lo terminado antes de crear su registro en Jira usa su fecha real de entrega (etiqueta registro-retroactivo).";
+$("#pie").textContent="Período evaluado: desde el "+(D.desde||"").split("-").reverse().join("/")+" (Sprint 4). Generado automáticamente desde la API de Jira. Lo terminado antes de crear su registro en Jira usa su fecha real de entrega (etiqueta registro-retroactivo).";
 render();
 let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(render,150)});
 </script>

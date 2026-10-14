@@ -16,11 +16,24 @@ Página con los KPIs del proyecto **AYNI** de Jira:
 En local:
 
 ```bash
-python generar.py            # necesita JIRA_TOKEN o el fichero ~/.ayni-jira-token
+python generar.py            # necesita JIRA_TOKEN o el fichero ~/ayni-jira-token.txt
 python generar.py --sin-red  # vuelve a pintar la página con el último docs/datos.json
 ```
 
 Solo usa la biblioteca estándar de Python.
+
+## Período evaluado
+
+Solo se lee y se muestra lo del **Sprint 4 en adelante** (desde el 5-oct-2026), que es lo que revisa el docente. Se cambia con `TABLERO_DESDE_SPRINT` y `TABLERO_DESDE_FECHA`.
+
+## Modo revisión (validar tareas)
+
+1. Pulsar **Modo revisión** y pegar un token *fine-grained* de GitHub con acceso solo a este repositorio y el permiso **Actions: Read and write**.
+2. El token vive solo en esa pestaña (`sessionStorage`) y se borra al cerrarla o tras 30 minutos sin uso.
+3. Marcar las tareas terminadas y pulsar **Enviar a Jira**.
+4. La página lanza el workflow `validar.yml`, que pone o quita la etiqueta `validada-sm` en Jira y republica el tablero.
+
+Nadie sin ese permiso sobre el repositorio puede validar: lo comprueba GitHub, no la página.
 
 ## Reglas de lectura
 

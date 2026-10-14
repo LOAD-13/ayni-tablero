@@ -31,4 +31,4 @@ jobs:
           git config user.email "jloadenegri@gmail.com"
           git add historico.json docs/
           git diff --cached --quiet || git commit -m "chore(tablero): instantanea del $(TZ=America/Lima date +%F)"
-          git push
+          for i in 1 2 3; do git pull --rebase -X theirs && git push && exit 0; sleep 5; done; exit 1

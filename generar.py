@@ -4,7 +4,7 @@
     python generar.py            → lee Jira, actualiza historico.json y escribe docs/index.html
     python generar.py --sin-red  → regenera la página con el último datos.json (para probar el diseño)
 
-El token se lee de la variable JIRA_TOKEN o del fichero ~/.ayni-jira-token. Solo usa la biblioteca
+El token se lee de la variable JIRA_TOKEN o del fichero ~/ayni-jira-token.txt. Solo usa la biblioteca
 estándar de Python.
 """
 import base64, datetime as dt, json, os, pathlib, sys, urllib.request, urllib.error
@@ -15,6 +15,9 @@ PROYECTO = "AYNI"
 SP, SPRINT = "customfield_10016", "customfield_10020"
 RAIZ = pathlib.Path(__file__).parent
 LIMA = dt.timezone(dt.timedelta(hours=-5))
+# Período evaluado: desde el Sprint 4 (5-oct-2026). Lo anterior no se lee ni se muestra.
+DESDE_SPRINT = int(os.environ.get("TABLERO_DESDE_SPRINT", "109"))
+DESDE_FECHA = os.environ.get("TABLERO_DESDE_FECHA", "2026-10-05")
 
 # Quien todavía no tiene cuenta en Jira se marca con una etiqueta resp-<nombre>
 SIN_CUENTA = {"resp-gerardo": "Gerardo Socualaya Mandamiento"}
@@ -32,22 +35,27 @@ EQUIPO = ["Joaquín Loa Denegri", "Kiara Santti Saavedra", "Eduardo Vargas Zumae
 def token():
     t = os.environ.get("JIRA_TOKEN")
     if not t:
-        f = pathlib.Path.home() / ".ayni-jira-token"
+        f = pathlib.Path.home() / "ayni-jira-token.txt"
         t = f.read_text(encoding="utf-8").strip() if f.exists() else ""
     if not t:
-        sys.exit("Falta el token de Jira (JIRA_TOKEN o ~/.ayni-jira-token)")
+        sys.exit("Falta el token de Jira (JIRA_TOKEN o ~/ayni-jira-token.txt)")
     return t
 
 
-def jira(ruta, cuerpo=None):
+def jira_put(ruta, cuerpo):
+    return jira(ruta, cuerpo, "PUT")
+
+
+def jira(ruta, cuerpo=None, metodo=None):
     auth = base64.b64encode(f"{CORREO}:{token()}".encode()).decode()
     req = urllib.request.Request(SITIO + ruta, data=json.dumps(cuerpo).encode() if cuerpo else None,
-                                 method="POST" if cuerpo else "GET",
+                                 method=metodo or ("POST" if cuerpo else "GET"),
                                  headers={"Authorization": "Basic " + auth, "Accept": "application/json",
                                           "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
-            return json.loads(r.read().decode())
+            txt = r.read().decode()
+            return json.loads(txt) if txt else None
     except urllib.error.HTTPError as e:
         sys.exit(f"Jira respondió {e.code} en {ruta}: {e.read().decode()[:300]}")
 
@@ -119,6 +127,15 @@ def normalizar(crudas):
     return filas, sorted(sprints.values(), key=lambda s: s["id"]), epicas
 
 
+def ventana(filas, sprints):
+    """Solo el período evaluado: épicas, lo de los sprints desde DESDE_SPRINT y lo que no tiene sprint pero sigue
+    abierto o se terminó dentro del período."""
+    dentro = [f for f in filas if f["tipo"] == "Epic"
+              or (f["sprint"] is not None and f["sprint"] >= DESDE_SPRINT)
+              or (f["sprint"] is None and (f["cat"] != "done" or (f["hecho"] or "") >= DESDE_FECHA))]
+    return dentro, [s for s in sprints if s["id"] >= DESDE_SPRINT]
+
+
 def instantanea(filas):
     hojas = [f for f in filas if f["hoja"]]
     por = {p: {"hecho": 0, "total": 0} for p in EQUIPO}
@@ -138,13 +155,15 @@ def main():
         datos = json.loads(datos_f.read_text(encoding="utf-8"))
     else:
         filas, sprints, epicas = normalizar(leer_incidencias())
+        filas, sprints = ventana(filas, sprints)
         hist_f = RAIZ / "historico.json"
         historico = json.loads(hist_f.read_text(encoding="utf-8")) if hist_f.exists() else []
         hoy = instantanea(filas)
         historico = [h for h in historico if h["fecha"] != hoy["fecha"]] + [hoy]
         hist_f.write_text(json.dumps(historico, ensure_ascii=False, indent=1), encoding="utf-8")
         datos = {"generado": dt.datetime.now(LIMA).strftime("%Y-%m-%d %H:%M"), "sitio": SITIO, "proyecto": PROYECTO,
-                 "equipo": EQUIPO, "filas": filas, "sprints": sprints, "epicas": epicas, "historico": historico}
+                 "equipo": EQUIPO, "desde": DESDE_FECHA,
+                 "repo": os.environ.get("GITHUB_REPOSITORY", "LOAD-13/ayni-tablero"), "filas": filas, "sprints": sprints, "epicas": epicas, "historico": historico}
         datos_f.parent.mkdir(exist_ok=True)
         datos_f.write_text(json.dumps(datos, ensure_ascii=False), encoding="utf-8")
     plantilla = (RAIZ / "plantilla.html").read_text(encoding="utf-8")
