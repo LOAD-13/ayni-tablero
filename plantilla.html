@@ -3,64 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://*.supabase.co; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#031321">
 <title>Tablero de avance · Ayni Bank</title>
+<link rel="icon" type="image/png" href="marca/icono-64.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:light;--bg:#f6f7f8;--surface:#fcfcfb;--line:#e4e3df;--grid:#ecebe7;--t1:#0b0b0b;--t2:#52514e;--t3:#7a7975;
- --brand:#064475;--s1:#2a78d6;--s2:#1baf7a;--rest:#e4e3df;--warn:#b26b00;--bad:#c4312f;--good:#0f7a52;--hover:rgba(42,120,214,.08)}
-@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){color-scheme:dark;--bg:#111110;--surface:#1a1a19;--line:#33332f;
- --grid:#262624;--t1:#fff;--t2:#c3c2b7;--t3:#8d8c84;--brand:#8fc1ea;--s1:#3987e5;--s2:#199e70;--rest:#383835;--warn:#e0a03a;--bad:#ff7b72;--good:#4fbf8b;--hover:rgba(57,135,229,.14)}}
-:root[data-theme="dark"]{color-scheme:dark;--bg:#111110;--surface:#1a1a19;--line:#33332f;--grid:#262624;--t1:#fff;--t2:#c3c2b7;--t3:#8d8c84;
- --brand:#8fc1ea;--s1:#3987e5;--s2:#199e70;--rest:#383835;--warn:#e0a03a;--bad:#ff7b72;--good:#4fbf8b;--hover:rgba(57,135,229,.14)}
+:root{color-scheme:dark;--bg:#031321;--surface:#07213a;--line:rgba(232,238,244,.1);--grid:rgba(232,238,244,.06);--t1:#e8eef4;--t2:#a3b3c4;--t3:#6f8397;
+ --brand:#d6b76d;--s1:#d6b76d;--s2:#4c9bd6;--rest:#173552;--warn:#e0b24f;--bad:#ff7b72;--good:#5fc79a;--hover:rgba(214,183,109,.1);--panel2:#0a2a48}
+:root[data-theme="light"]{color-scheme:light;--bg:#f3f8fc;--surface:#ffffff;--line:#d9e3ec;--grid:#e9eff5;--t1:#0d1b2a;--t2:#3f5164;--t3:#6b7c8e;
+ --brand:#064475;--s1:#a8862f;--s2:#1276be;--rest:#e4eff9;--warn:#8a6d24;--bad:#b3261e;--good:#0f7a52;--hover:rgba(6,68,117,.06);--panel2:#e4eff9}
 *{box-sizing:border-box;margin:0}
-body{font:14px/1.5 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--t1)}
-header{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 16px;position:sticky;top:0;z-index:5}
+body{font:14px/1.55 Geist,system-ui,sans-serif;background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
+code,.mono,.tile b,td.n,th.n,svg text{font-family:"Geist Mono",ui-monospace,Consolas,monospace}
+header{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 16px;position:sticky;top:0;z-index:5}
 .cab{max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
-h1{font-size:18px;color:var(--brand)} .sub{font-size:12px;color:var(--t2)}
+.marca{display:flex;align-items:center;gap:10px;color:var(--t1);text-decoration:none}
+.marca img{width:30px;height:30px}
+h1{font:600 15px/1.2 "Geist Mono",monospace;color:var(--t1)} h1 span{color:var(--t3);font-weight:400} h1 b{color:var(--brand);font-weight:500}
+.sub{font-size:12px;color:var(--t3);font-family:"Geist Mono",monospace}
 .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
-select,input[type=search],button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--t1)}
-button{cursor:pointer} button:hover{border-color:var(--s1)}
-main{max-width:1280px;margin:0 auto;padding:16px}
+select,input[type=search],input[type=text],input[type=password],button{font:inherit;font-size:13px;padding:7px 11px;border:1px solid var(--line);border-radius:3px;background:var(--surface);color:var(--t1)}
+button{cursor:pointer;font-family:"Geist Mono",monospace} button:hover{border-color:var(--brand)}
+main{max-width:1280px;margin:0 auto;padding:18px 16px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.tile b{display:block;font-size:26px;line-height:1.15;font-variant-numeric:tabular-nums}
-.tile span{font-size:12px;color:var(--t2)}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:14px 16px;border-top:2px solid var(--brand)}
+.tile b{display:block;font-size:26px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--brand)}
+.tile span{font-size:11.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));gap:16px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;min-width:0}
-.card h2{font-size:15px;margin-bottom:2px} .card .nota{font-size:12px;color:var(--t2);margin-bottom:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:18px;margin-bottom:16px;min-width:0}
+.card h2{font:500 15px/1.3 "Geist Mono",monospace;margin-bottom:4px} .card .nota{font-size:12.5px;color:var(--t2);margin-bottom:10px}
 .leyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--t2);margin:4px 0 8px}
-.leyenda i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 svg{display:block;max-width:100%;overflow:visible}
-svg text{fill:var(--t2);font-size:11px;font-family:inherit} svg .t1{fill:var(--t1)}
+svg text{fill:var(--t2);font-size:11px} svg .t1{fill:var(--t1)}
 .ax{stroke:var(--line)} .gr{stroke:var(--grid)}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{text-align:left;color:var(--t2);font-weight:600;border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
-td{border-bottom:1px solid var(--grid);padding:6px 8px;vertical-align:top}
+th{text-align:left;color:var(--t3);font-weight:500;border-bottom:1px solid var(--line);padding:7px 8px;white-space:nowrap;text-transform:uppercase;font-size:11px;letter-spacing:.06em}
+td{border-bottom:1px solid var(--grid);padding:7px 8px;vertical-align:top}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .tabla{overflow-x:auto}
-a{color:var(--s1);text-decoration:none} a:hover{text-decoration:underline}
-.pill{font-size:11px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);white-space:nowrap}
+a{color:var(--brand);text-decoration:none} a:hover{text-decoration:underline}
+.pill{font-size:11px;padding:1px 8px;border-radius:2px;border:1px solid var(--line);white-space:nowrap;font-family:"Geist Mono",monospace}
 .pill.done{color:var(--good);border-color:currentColor}.pill.indeterminate{color:var(--warn);border-color:currentColor}
 .ok{color:var(--good)} .mal{color:var(--bad)} .med{color:var(--warn)}
-#tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--t1);border:1px solid var(--line);border-radius:8px;
- padding:7px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.18);display:none;z-index:20;max-width:260px}
+#tip{position:fixed;pointer-events:none;background:var(--panel2);color:var(--t1);border:1px solid var(--line);border-radius:3px;
+ padding:7px 10px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:none;z-index:20;max-width:260px}
 #tip b{display:block;margin-bottom:2px}
 .vacio{color:var(--t3);font-size:13px;padding:14px 0}
-dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--t1);padding:20px;max-width:440px;width:calc(100% - 32px)}
-dialog::backdrop{background:rgba(0,0,0,.45)}
-dialog h2{font-size:16px;margin-bottom:6px} dialog p{font-size:12.5px;color:var(--t2);margin:6px 0}
-dialog input{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--t1);margin:8px 0}
-.err{color:var(--bad);font-size:12.5px;min-height:18px}
-.prim{background:var(--s1);border-color:var(--s1);color:#fff}
-#barra{position:sticky;bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:10px;display:none;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.12)}
+dialog{border:1px solid var(--line);border-top:2px solid var(--brand);border-radius:3px;background:var(--surface);color:var(--t1);padding:24px;max-width:400px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(1,10,18,.7);backdrop-filter:blur(3px)}
+dialog .cabm{display:flex;align-items:center;gap:10px;margin-bottom:12px} dialog .cabm img{width:32px;height:32px}
+dialog h2{font:500 16px/1.2 "Geist Mono",monospace} dialog p{font-size:12.5px;color:var(--t2);margin:4px 0 10px}
+dialog label{display:block;font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:10px}
+dialog input{width:100%;margin-top:6px;background:var(--bg)}
+.err{color:var(--bad);font-size:12.5px;min-height:18px;margin-top:8px}
+.prim{background:var(--brand);border-color:var(--brand);color:#1b1305;font-weight:600}
+:root[data-theme="light"] .prim{color:#fff}
+#barra{position:sticky;bottom:0;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:10px 14px;margin-top:10px;display:none;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 -6px 20px rgba(0,0,0,.25)}
 #modo{font-size:12px;color:var(--t2)}
 footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;color:var(--t3)}
 </style>
 </head>
 <body>
 <header><div class="cab">
- <div><h1>Tablero de avance · Ayni Bank</h1><div class="sub" id="gen"></div></div>
+ <a class="marca" href="https://load-13.github.io/ayni-portafolio/" title="Bitácora de Ayni Bank"><img src="marca/icono-64.png" width="30" height="30" alt=""><div><h1>ayni bank <span>/</span><b>tablero</b></h1><div class="sub" id="gen"></div></div></a>
  <div class="filtros">
   <label class="sub" for="fSprint">Sprint</label><select id="fSprint"></select>
   <label class="sub" for="fPersona">Persona</label><select id="fPersona"></select>
@@ -91,13 +100,13 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
 </main>
 <footer id="pie"></footer>
 <div id="tip" role="tooltip"></div>
-<dialog id="dlg"><form method="dialog">
- <h2>Modo revisión</h2>
- <p>Solo el Scrum Master valida tareas. Pega tu token de GitHub (fine-grained, con permiso <b>Actions: Read and write</b> sobre este repositorio).</p>
- <p>El token se guarda solo en esta pestaña y se borra al cerrarla o tras 30 minutos sin uso. GitHub rechaza cualquier token sin ese permiso.</p>
- <input type="password" id="pat" autocomplete="off" spellcheck="false" placeholder="github_pat_…" aria-label="Token de GitHub">
+<dialog id="dlg"><form method="dialog" autocomplete="on">
+ <div class="cabm"><img src="marca/icono-64.png" alt=""><div><h2>modo revisión</h2></div></div>
+ <p>Solo el Scrum Master valida las tareas terminadas.</p>
+ <label for="usu">Usuario</label><input type="text" id="usu" autocomplete="username" spellcheck="false">
+ <label for="cla">Contraseña</label><input type="password" id="cla" autocomplete="current-password">
  <div class="err" id="loginErr"></div>
- <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button value="cancel" formnovalidate type="submit">Cancelar</button><button class="prim" id="entrar" type="button">Entrar</button></div>
+ <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button value="cancel" formnovalidate type="submit">Cancelar</button><button class="prim" id="entrar" type="button">Entrar</button></div>
 </form></dialog>
 <script>
 const D=/*__DATOS__*/null;
@@ -111,8 +120,7 @@ function ocultar(){tip.style.display="none"}
 // Tema
 const raiz=document.documentElement;
 try{const t=localStorage.getItem("tablero-tema");if(t)raiz.dataset.theme=t}catch(e){}
-$("#tema").onclick=()=>{const osc=raiz.dataset.theme?raiz.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
- raiz.dataset.theme=osc?"light":"dark";try{localStorage.setItem("tablero-tema",raiz.dataset.theme)}catch(e){}};
+$("#tema").onclick=()=>{raiz.dataset.theme=raiz.dataset.theme==="light"?"dark":"light";try{localStorage.setItem("tablero-tema",raiz.dataset.theme)}catch(e){}};
 // Filtros
 const sprintNombre=id=>(D.sprints.find(s=>s.id===id)||{}).nombre||"Sin sprint";
 const activo=D.sprints.find(s=>s.estado==="active");
@@ -218,14 +226,11 @@ function detalle(){
   F.slice(0,400).map(f=>`<tr><td><a href="${D.sitio}/browse/${f.clave}" target="_blank" rel="noopener">${f.clave}</a></td><td>${esc(f.resumen)}</td><td>${esc(corto(f.resp))}</td><td>${esc(sprintNombre(f.sprint).split("·")[0])}</td><td class="n">${f.sp||"—"}</td><td><span class="pill ${f.cat}">${esc(f.estado)}</span></td><td>${celdaValidada(f)}</td></tr>`).join("")+`</tbody></table>`:'<p class="vacio">Ninguna tarea coincide con el filtro.</p>';
 }
 // ── Modo revisión ──────────────────────────────────────────────────────────────
-const GH="https://api.github.com",REPO=D.repo||"LOAD-13/ayni-tablero";
+// La contraseña nunca está en esta página: el servicio de revisión la comprueba y es quien escribe en Jira.
+const API=D.revision||"";
 const cambios=new Map();let sesion=null,inactivo;
 function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);if(v===null)sessionStorage.removeItem(k);else sessionStorage.setItem(k,v)}catch(e){return null}}
-function enProceso(){try{const p=JSON.parse(localStorage.getItem("tablero-enviadas")||"{}");const gen=(D.generado||"").replace(" ","T");
- for(const k in p){if(p[k].t<=gen)delete p[k]}return p}catch(e){return{}}}
 function celdaValidada(f){
- const p=enProceso()[f.clave];
- if(p)return `<span class="med">En proceso (${p.a==="validar"?"validando":"desmarcando"})…</span>`;
  if(f.cat!=="done")return "—";
  if(!sesion)return f.validada?'<span class="ok">✓ Validada</span>':'<span class="med">Pendiente</span>';
  const c=cambios.get(f.clave),marcada=c?c==="validar":f.validada;
@@ -236,27 +241,35 @@ function barra(){const v=[...cambios.values()];$("#barra").style.display=(sesion
 document.addEventListener("change",ev=>{const c=ev.target.closest("[data-val]");if(!c)return;tocar();
  const k=c.dataset.val,orig=c.dataset.orig==="1";if(c.checked===orig)cambios.delete(k);else cambios.set(k,c.checked?"validar":"quitar");detalle();barra()});
 function tocar(){clearTimeout(inactivo);if(sesion)inactivo=setTimeout(()=>salir("La sesión de revisión se cerró por inactividad."),30*60*1000)}
-function salir(msg){sesion=null;ss("tablero-gh",null);cambios.clear();$("#modo").textContent=msg||"";$("#revisar").textContent="Modo revisión";detalle();barra()}
-async function gh(ruta,opc={}){return fetch(GH+ruta,{...opc,headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+sesion,"X-GitHub-Api-Version":"2022-11-28",...(opc.headers||{})}})}
-async function entrar(pat){
- if(!/^(github_pat_|ghp_)[A-Za-z0-9_]{20,}$/.test(pat))throw new Error("Eso no parece un token de GitHub.");
- sesion=pat;let r;try{r=await gh(`/repos/${REPO}/actions/workflows/validar.yml`)}catch(e){sesion=null;throw new Error("No se pudo contactar con GitHub.")}
- if(!r.ok){sesion=null;throw new Error(r.status===401?"GitHub rechazó el token (caducado o inválido).":"Ese token no tiene acceso a las Actions de este repositorio.")}
- ss("tablero-gh",pat);$("#modo").textContent="Revisando como Scrum Master";$("#revisar").textContent="Salir de revisión";tocar();detalle();barra()}
-$("#revisar").onclick=()=>{if(sesion){salir("");return}$("#loginErr").textContent="";$("#pat").value="";$("#dlg").showModal()};
-$("#entrar").onclick=async()=>{const b=$("#entrar");b.disabled=true;try{await entrar($("#pat").value.trim());$("#pat").value="";$("#dlg").close()}catch(e){$("#loginErr").textContent=e.message}finally{b.disabled=false}};
-$("#pat").onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();$("#entrar").click()}};
+function salir(msg){sesion=null;ss("tablero-rev",null);cambios.clear();$("#modo").textContent=msg||"";$("#revisar").textContent="Modo revisión";detalle();barra()}
+async function api(cuerpo){
+ if(!API)throw new Error("El servicio de revisión aún no está configurado.");
+ let r;try{r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(cuerpo)})}catch(e){throw new Error("No se pudo contactar con el servicio de revisión.")}
+ const j=await r.json().catch(()=>({}));
+ if(r.status===401)throw new Error("Usuario o contraseña incorrectos.");
+ if(r.status===429)throw new Error("Demasiados intentos. Espera unos minutos.");
+ if(!r.ok)throw new Error(j.error||("El servicio respondió "+r.status+"."));
+ return j}
+async function entrar(usuario,clave){
+ await api({usuario,clave,cambios:[]});
+ sesion={usuario,clave};ss("tablero-rev",JSON.stringify(sesion));
+ $("#modo").textContent="Revisando como Scrum Master";$("#revisar").textContent="Salir de revisión";tocar();detalle();barra()}
+async function refrescarValidadas(){if(!API)return;try{const r=await fetch(API);if(!r.ok)return;const j=await r.json();
+ const v=new Set(j.validadas||[]),q=new Set(j.quitadas||[]);
+ D.filas.forEach(f=>{if(v.has(f.clave))f.validada=true;if(q.has(f.clave))f.validada=false});render()}catch(e){}}
+$("#revisar").onclick=()=>{if(sesion){salir("");return}$("#loginErr").textContent="";$("#cla").value="";$("#dlg").showModal();$("#usu").focus()};
+$("#entrar").onclick=async()=>{const b=$("#entrar");b.disabled=true;$("#loginErr").textContent="";
+ try{await entrar($("#usu").value.trim(),$("#cla").value);$("#cla").value="";$("#dlg").close()}catch(e){$("#loginErr").textContent=e.message}finally{b.disabled=false}};
+$("#cla").onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();$("#entrar").click()}};
 $("#limpiar").onclick=()=>{cambios.clear();detalle();barra()};
 $("#enviar").onclick=async()=>{tocar();const b=$("#enviar");b.disabled=true;$("#barraErr").textContent="";
- try{for(const accion of ["validar","quitar"]){const claves=[...cambios].filter(([,a])=>a===accion).map(([k])=>k);
-   for(let i=0;i<claves.length;i+=60){const lote=claves.slice(i,i+60);
-    const r=await gh(`/repos/${REPO}/actions/workflows/validar.yml/dispatches`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs:{claves:lote.join(","),accion}})});
-    if(r.status!==204)throw new Error(r.status===401||r.status===403?"GitHub rechazó el envío: revisa el permiso Actions del token.":"GitHub respondió "+r.status+".");
-    const p=enProceso(),t=new Date(Date.now()-5*3600e3).toISOString().slice(0,16);lote.forEach(k=>{p[k]={a:accion,t};cambios.delete(k)});
-    try{localStorage.setItem("tablero-enviadas",JSON.stringify(p))}catch(e){}}}
-  $("#modo").textContent="Enviado. Jira se actualiza y el tablero se republica en 1–2 minutos.";detalle();barra()}
- catch(e){$("#barraErr").textContent=e.message}finally{b.disabled=false}};
-(async()=>{const g=ss("tablero-gh");if(g){try{await entrar(g)}catch(e){salir("")}}})();
+ try{const lista=[...cambios].map(([clave,accion])=>({clave,accion}));
+  for(let i=0;i<lista.length;i+=60){const lote=lista.slice(i,i+60);const j=await api({...sesion,cambios:lote});
+   (j.aplicados||[]).forEach(a=>{const f=D.filas.find(x=>x.clave===a.clave);if(f)f.validada=a.accion==="validar";cambios.delete(a.clave)})}
+  $("#modo").textContent="Guardado en Jira.";render();barra()}
+ catch(e){$("#barraErr").textContent=e.message;if(/incorrectos/.test(e.message))salir("La sesión dejó de ser válida.")}finally{b.disabled=false}};
+(async()=>{const g=ss("tablero-rev");if(g){try{const x=JSON.parse(g);await entrar(x.usuario,x.clave)}catch(e){salir("")}}})();
+refrescarValidadas();
 $("#fSprint").onchange=render;$("#fPersona").onchange=render;$("#busca").oninput=detalle;
 $("#pie").textContent="Período evaluado: desde el "+(D.desde||"").split("-").reverse().join("/")+" (Sprint 4). Generado automáticamente desde la API de Jira. Lo terminado antes de crear su registro en Jira usa su fecha real de entrega (etiqueta registro-retroactivo).";
 render();

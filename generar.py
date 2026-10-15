@@ -27,6 +27,7 @@ NOMBRES = {  # nombre visible en Jira → nombre del equipo
     "Eduardo Vargas Zumaeta (EduardoVaZu)": "Eduardo Vargas Zumaeta",
     "Frank": "Frank Sotomayor Suasnabar",
     "fabian.gar.0405": "Fabián García Champi",
+    "knight.tekk3n.23": "Gerardo Socualaya Mandamiento",
 }
 EQUIPO = ["Joaquín Loa Denegri", "Kiara Santti Saavedra", "Eduardo Vargas Zumaeta",
           "Frank Sotomayor Suasnabar", "Fabián García Champi", "Gerardo Socualaya Mandamiento"]
@@ -163,7 +164,8 @@ def main():
         hist_f.write_text(json.dumps(historico, ensure_ascii=False, indent=1), encoding="utf-8")
         datos = {"generado": dt.datetime.now(LIMA).strftime("%Y-%m-%d %H:%M"), "sitio": SITIO, "proyecto": PROYECTO,
                  "equipo": EQUIPO, "desde": DESDE_FECHA,
-                 "repo": os.environ.get("GITHUB_REPOSITORY", "LOAD-13/ayni-tablero"), "filas": filas, "sprints": sprints, "epicas": epicas, "historico": historico}
+                 "repo": os.environ.get("GITHUB_REPOSITORY", "LOAD-13/ayni-tablero"),
+                 "revision": os.environ.get("TABLERO_REVISION_URL", ""), "filas": filas, "sprints": sprints, "epicas": epicas, "historico": historico}
         datos_f.parent.mkdir(exist_ok=True)
         datos_f.write_text(json.dumps(datos, ensure_ascii=False), encoding="utf-8")
     plantilla = (RAIZ / "plantilla.html").read_text(encoding="utf-8")
