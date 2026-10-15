@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://*.supabase.co; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#031321">
 <title>Tablero de avance · Ayni Bank</title>
@@ -96,13 +96,13 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
  <div class="card"><h2>Detalle de tareas</h2><div class="nota">«Validada» = el Scrum Master revisó el trabajo (etiqueta <code>validada-sm</code> en Jira).</div>
   <input type="search" id="busca" placeholder="Buscar por clave o resumen" style="width:min(380px,100%);margin-bottom:8px">
   <div class="tabla" id="detalle"></div>
-  <div id="barra"><span id="barraTxt"></span><button class="prim" id="enviar" type="button">Enviar a Jira</button><button id="limpiar" type="button">Descartar</button><span class="err" id="barraErr"></span></div></div>
+  <div id="barra"><span id="barraTxt"></span></div></div>
 </main>
 <footer id="pie"></footer>
 <div id="tip" role="tooltip"></div>
 <dialog id="dlg"><form method="dialog" autocomplete="on">
  <div class="cabm"><img src="marca/icono-64.png" alt=""><div><h2>modo revisión</h2></div></div>
- <p>Solo el Scrum Master valida las tareas terminadas.</p>
+ <p>Solo el Scrum Master valida las tareas terminadas. Las marcas se guardan en este navegador.</p>
  <label for="usu">Usuario</label><input type="text" id="usu" autocomplete="username" spellcheck="false">
  <label for="cla">Contraseña</label><input type="password" id="cla" autocomplete="current-password">
  <div class="err" id="loginErr"></div>
@@ -226,50 +226,37 @@ function detalle(){
   F.slice(0,400).map(f=>`<tr><td><a href="${D.sitio}/browse/${f.clave}" target="_blank" rel="noopener">${f.clave}</a></td><td>${esc(f.resumen)}</td><td>${esc(corto(f.resp))}</td><td>${esc(sprintNombre(f.sprint).split("·")[0])}</td><td class="n">${f.sp||"—"}</td><td><span class="pill ${f.cat}">${esc(f.estado)}</span></td><td>${celdaValidada(f)}</td></tr>`).join("")+`</tbody></table>`:'<p class="vacio">Ninguna tarea coincide con el filtro.</p>';
 }
 // ── Modo revisión ──────────────────────────────────────────────────────────────
-// La contraseña nunca está en esta página: el servicio de revisión la comprueba y es quien escribe en Jira.
-const API=D.revision||"";
-const cambios=new Map();let sesion=null,inactivo;
+// Puerta sencilla en el navegador: se compara la huella SHA-256 de «usuario\ncontraseña», nunca la contraseña.
+// Las validaciones se guardan en este navegador; una etiqueta validada-sm en Jira también cuenta y la ve todo el mundo.
+const HUELLA="150f3961f71e1649e19ca452b1bf012e27dab409b87436dc2e18bd1a8f80ed5b";
+let sesion=false,inactivo,fallos=0;
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);if(v===null)sessionStorage.removeItem(k);else sessionStorage.setItem(k,v)}catch(e){return null}}
+let locales={};try{locales=JSON.parse(ls("tablero-validadas")||"{}")}catch(e){}
+const jira=new Map(D.filas.map(f=>[f.clave,f.validada]));
+function aplicarLocales(){D.filas.forEach(f=>{f.validada=f.clave in locales?locales[f.clave]:jira.get(f.clave)})}
+aplicarLocales();
 function celdaValidada(f){
  if(f.cat!=="done")return "—";
  if(!sesion)return f.validada?'<span class="ok">✓ Validada</span>':'<span class="med">Pendiente</span>';
- const c=cambios.get(f.clave),marcada=c?c==="validar":f.validada;
- return `<label style="cursor:pointer;white-space:nowrap"><input type="checkbox" data-val="${f.clave}" data-orig="${f.validada?1:0}" ${marcada?"checked":""}> ${marcada?"Validada":"Pendiente"}</label>`;
+ return `<label style="cursor:pointer;white-space:nowrap"><input type="checkbox" data-val="${f.clave}" ${f.validada?"checked":""}> ${f.validada?"Validada":"Pendiente"}</label>`;
 }
-function barra(){const v=[...cambios.values()];$("#barra").style.display=(sesion&&v.length)?"flex":"none";
- $("#barraTxt").textContent=`${v.filter(x=>x==="validar").length} por validar · ${v.filter(x=>x==="quitar").length} por desmarcar`}
-document.addEventListener("change",ev=>{const c=ev.target.closest("[data-val]");if(!c)return;tocar();
- const k=c.dataset.val,orig=c.dataset.orig==="1";if(c.checked===orig)cambios.delete(k);else cambios.set(k,c.checked?"validar":"quitar");detalle();barra()});
+function barra(){}
+document.addEventListener("change",ev=>{const c=ev.target.closest("[data-val]");if(!c||!sesion)return;tocar();
+ locales[c.dataset.val]=c.checked;ls("tablero-validadas",JSON.stringify(locales));aplicarLocales();render();
+ $("#modo").textContent=`${c.dataset.val} ${c.checked?"validada":"marcada como pendiente"}`});
 function tocar(){clearTimeout(inactivo);if(sesion)inactivo=setTimeout(()=>salir("La sesión de revisión se cerró por inactividad."),30*60*1000)}
-function salir(msg){sesion=null;ss("tablero-rev",null);cambios.clear();$("#modo").textContent=msg||"";$("#revisar").textContent="Modo revisión";detalle();barra()}
-async function api(cuerpo){
- if(!API)throw new Error("El servicio de revisión aún no está configurado.");
- let r;try{r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(cuerpo)})}catch(e){throw new Error("No se pudo contactar con el servicio de revisión.")}
- const j=await r.json().catch(()=>({}));
- if(r.status===401)throw new Error("Usuario o contraseña incorrectos.");
- if(r.status===429)throw new Error("Demasiados intentos. Espera unos minutos.");
- if(!r.ok)throw new Error(j.error||("El servicio respondió "+r.status+"."));
- return j}
+function salir(msg){sesion=false;ss("tablero-rev",null);$("#modo").textContent=msg||"";$("#revisar").textContent="Modo revisión";detalle()}
+async function huella(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
 async function entrar(usuario,clave){
- await api({usuario,clave,cambios:[]});
- sesion={usuario,clave};ss("tablero-rev",JSON.stringify(sesion));
- $("#modo").textContent="Revisando como Scrum Master";$("#revisar").textContent="Salir de revisión";tocar();detalle();barra()}
-async function refrescarValidadas(){if(!API)return;try{const r=await fetch(API);if(!r.ok)return;const j=await r.json();
- const v=new Set(j.validadas||[]),q=new Set(j.quitadas||[]);
- D.filas.forEach(f=>{if(v.has(f.clave))f.validada=true;if(q.has(f.clave))f.validada=false});render()}catch(e){}}
+ if(fallos>=5)throw new Error("Demasiados intentos. Recarga la página para volver a probar.");
+ if(await huella(usuario+"\n"+clave)!==HUELLA){fallos++;await new Promise(r=>setTimeout(r,400*fallos));throw new Error("Usuario o contraseña incorrectos.")}
+ fallos=0;sesion=true;ss("tablero-rev","1");$("#modo").textContent="Revisando como Scrum Master";$("#revisar").textContent="Salir de revisión";tocar();detalle()}
 $("#revisar").onclick=()=>{if(sesion){salir("");return}$("#loginErr").textContent="";$("#cla").value="";$("#dlg").showModal();$("#usu").focus()};
 $("#entrar").onclick=async()=>{const b=$("#entrar");b.disabled=true;$("#loginErr").textContent="";
  try{await entrar($("#usu").value.trim(),$("#cla").value);$("#cla").value="";$("#dlg").close()}catch(e){$("#loginErr").textContent=e.message}finally{b.disabled=false}};
 $("#cla").onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();$("#entrar").click()}};
-$("#limpiar").onclick=()=>{cambios.clear();detalle();barra()};
-$("#enviar").onclick=async()=>{tocar();const b=$("#enviar");b.disabled=true;$("#barraErr").textContent="";
- try{const lista=[...cambios].map(([clave,accion])=>({clave,accion}));
-  for(let i=0;i<lista.length;i+=60){const lote=lista.slice(i,i+60);const j=await api({...sesion,cambios:lote});
-   (j.aplicados||[]).forEach(a=>{const f=D.filas.find(x=>x.clave===a.clave);if(f)f.validada=a.accion==="validar";cambios.delete(a.clave)})}
-  $("#modo").textContent="Guardado en Jira.";render();barra()}
- catch(e){$("#barraErr").textContent=e.message;if(/incorrectos/.test(e.message))salir("La sesión dejó de ser válida.")}finally{b.disabled=false}};
-(async()=>{const g=ss("tablero-rev");if(g){try{const x=JSON.parse(g);await entrar(x.usuario,x.clave)}catch(e){salir("")}}})();
-refrescarValidadas();
+if(ss("tablero-rev")==="1"){sesion=true;$("#revisar").textContent="Salir de revisión";$("#modo").textContent="Revisando como Scrum Master";tocar()}
 $("#fSprint").onchange=render;$("#fPersona").onchange=render;$("#busca").oninput=detalle;
 $("#pie").textContent="Período evaluado: desde el "+(D.desde||"").split("-").reverse().join("/")+" (Sprint 4). Generado automáticamente desde la API de Jira. Lo terminado antes de crear su registro en Jira usa su fecha real de entrega (etiqueta registro-retroactivo).";
 render();

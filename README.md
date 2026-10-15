@@ -28,12 +28,12 @@ Solo se lee y se muestra lo del **Sprint 4 en adelante** (desde el 5-oct-2026), 
 
 ## Modo revisión (validar tareas)
 
-1. Pulsar **Modo revisión** y pegar un token *fine-grained* de GitHub con acceso solo a este repositorio y el permiso **Actions: Read and write**.
-2. El token vive solo en esa pestaña (`sessionStorage`) y se borra al cerrarla o tras 30 minutos sin uso.
-3. Marcar las tareas terminadas y pulsar **Enviar a Jira**.
-4. La página lanza el workflow `validar.yml`, que pone o quita la etiqueta `validada-sm` en Jira y republica el tablero.
+Botón **Modo revisión** → usuario y contraseña del Scrum Master. La página solo guarda la huella SHA-256 de esas
+credenciales, nunca la contraseña. Con la sesión abierta, cada tarea terminada tiene una casilla para marcarla como
+validada.
 
-Nadie sin ese permiso sobre el repositorio puede validar: lo comprueba GitHub, no la página.
+Las marcas se guardan **en el navegador** de quien revisa. Para que una validación la vea todo el mundo, añade la
+etiqueta `validada-sm` a la tarea en Jira: el tablero la lee en cada actualización.
 
 ## Reglas de lectura
 
