@@ -13,8 +13,6 @@
 <style>
 :root{color-scheme:dark;--bg:#031321;--surface:#07213a;--line:rgba(232,238,244,.1);--grid:rgba(232,238,244,.06);--t1:#e8eef4;--t2:#a3b3c4;--t3:#6f8397;
  --brand:#d6b76d;--s1:#d6b76d;--s2:#4c9bd6;--rest:#173552;--warn:#e0b24f;--bad:#ff7b72;--good:#5fc79a;--hover:rgba(214,183,109,.1);--panel2:#0a2a48}
-:root[data-theme="light"]{color-scheme:light;--bg:#f3f8fc;--surface:#ffffff;--line:#d9e3ec;--grid:#e9eff5;--t1:#0d1b2a;--t2:#3f5164;--t3:#6b7c8e;
- --brand:#064475;--s1:#a8862f;--s2:#1276be;--rest:#e4eff9;--warn:#8a6d24;--bad:#b3261e;--good:#0f7a52;--hover:rgba(6,68,117,.06);--panel2:#e4eff9}
 *{box-sizing:border-box;margin:0}
 body{font:14px/1.55 Geist,system-ui,sans-serif;background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
 code,.mono,.tile b,td.n,th.n,svg text{font-family:"Geist Mono",ui-monospace,Consolas,monospace}
@@ -61,7 +59,6 @@ dialog label{display:block;font-size:11px;color:var(--t3);text-transform:upperca
 dialog input{width:100%;margin-top:6px;background:var(--bg)}
 .err{color:var(--bad);font-size:12.5px;min-height:18px;margin-top:8px}
 .prim{background:var(--brand);border-color:var(--brand);color:#1b1305;font-weight:600}
-:root[data-theme="light"] .prim{color:#fff}
 #barra{position:sticky;bottom:0;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:10px 14px;margin-top:10px;display:none;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 -6px 20px rgba(0,0,0,.25)}
 #modo{font-size:12px;color:var(--t2)}
 footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;color:var(--t3)}
@@ -73,7 +70,6 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
  <div class="filtros">
   <label class="sub" for="fSprint">Sprint</label><select id="fSprint"></select>
   <label class="sub" for="fPersona">Persona</label><select id="fPersona"></select>
-  <button id="tema" type="button">Tema</button>
   <button id="revisar" type="button">Modo revisión</button><span id="modo"></span>
  </div></div></header>
 <main>
@@ -117,10 +113,6 @@ const hoy=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Lima"}))
 const tip=$("#tip");
 function mostrar(ev,html){tip.innerHTML=html;tip.style.display="block";const x=Math.min(ev.clientX+14,innerWidth-270);tip.style.left=x+"px";tip.style.top=(ev.clientY+14)+"px"}
 function ocultar(){tip.style.display="none"}
-// Tema
-const raiz=document.documentElement;
-try{const t=localStorage.getItem("tablero-tema");if(t)raiz.dataset.theme=t}catch(e){}
-$("#tema").onclick=()=>{raiz.dataset.theme=raiz.dataset.theme==="light"?"dark":"light";try{localStorage.setItem("tablero-tema",raiz.dataset.theme)}catch(e){}};
 // Filtros
 const sprintNombre=id=>(D.sprints.find(s=>s.id===id)||{}).nombre||"Sin sprint";
 const activo=D.sprints.find(s=>s.estado==="active");
