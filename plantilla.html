@@ -32,7 +32,7 @@ main{max-width:1280px;margin:0 auto;padding:18px 16px}
 .tile span{font-size:11.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));gap:16px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:18px;margin-bottom:16px;min-width:0}
-.card h2{font:500 15px/1.3 "Geist Mono",monospace;margin-bottom:4px} .card .nota{font-size:12.5px;color:var(--t2);margin-bottom:10px}
+.card h2{font:500 15px/1.3 "Geist Mono",monospace;margin-bottom:4px} .card-cab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px} .card-cab h2{margin:0} .card-cab label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-right:8px} .card .nota{font-size:12.5px;color:var(--t2);margin-bottom:10px}
 .leyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--t2);margin:4px 0 8px}
 .leyenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 svg{display:block;max-width:100%;overflow:visible}
@@ -74,7 +74,7 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
  </div></div></header>
 <main>
  <div class="tiles" id="tiles"></div>
- <div class="card"><h2>Reparto por persona</h2>
+ <div class="card"><div class="card-cab"><h2>Reparto por persona</h2><div><label for="fSprintRep">Sprint</label><select id="fSprintRep"></select></div></div>
   <div class="nota">Story points de las tareas hoja (subtareas y tareas sin subtareas) asignadas a cada integrante en el filtro elegido. La línea marca la cuota equitativa (total ÷ 6).</div>
   <div class="leyenda"><span><i style="background:var(--s1)"></i>Terminado</span><span><i style="background:var(--s2)"></i>En curso</span><span><i style="background:var(--rest)"></i>Por hacer</span></div>
   <div id="personas"></div><div class="tabla" id="tPersonas"></div></div>
@@ -117,6 +117,9 @@ function ocultar(){tip.style.display="none"}
 const sprintNombre=id=>(D.sprints.find(s=>s.id===id)||{}).nombre||"Sin sprint";
 const activo=D.sprints.find(s=>s.estado==="active");
 $("#fSprint").innerHTML='<option value="">Todo el proyecto</option>'+D.sprints.map(s=>`<option value="${s.id}">${esc(s.nombre)}${s.estado==="active"?" (activo)":""}</option>`).join("");
+$("#fSprintRep").innerHTML=$("#fSprint").innerHTML;
+// ?sprint=110 o ?sprint=activo abre el tablero ya filtrado (útil para presentar)
+try{const q=new URLSearchParams(location.search).get("sprint");const act=D.sprints.find(s=>s.estado==="active");const v=q==="activo"&&act?String(act.id):q;if(v&&D.sprints.some(s=>String(s.id)===v))$("#fSprint").value=v}catch(e){}
 $("#fPersona").innerHTML='<option value="">Todo el equipo</option>'+D.equipo.map(p=>`<option>${esc(p)}</option>`).join("");
 $("#gen").textContent=`Datos de Jira (${D.proyecto}) al ${D.generado} · ${D.filas.length} incidencias`;
 const hojas=D.filas.filter(f=>f.hoja);
@@ -161,6 +164,7 @@ function barrasH(cont,filas,{max,cuota,fmt=v=>v}){
 }
 // Render
 function render(){
+ $("#fSprintRep").value=$("#fSprint").value;
  const F=filtradas(),sum=a=>a.reduce((t,f)=>t+(f.sp||0),0);
  const total=sum(F),hecho=sum(F.filter(f=>f.cat==="done")),curso=sum(F.filter(f=>f.cat==="indeterminate"));
  const hu=D.filas.filter(f=>f.tipo==="Historia"),huH=hu.filter(f=>f.cat==="done").length;
@@ -249,7 +253,7 @@ $("#entrar").onclick=async()=>{const b=$("#entrar");b.disabled=true;$("#loginErr
  try{await entrar($("#usu").value.trim(),$("#cla").value);$("#cla").value="";$("#dlg").close()}catch(e){$("#loginErr").textContent=e.message}finally{b.disabled=false}};
 $("#cla").onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();$("#entrar").click()}};
 if(ss("tablero-rev")==="1"){sesion=true;$("#revisar").textContent="Salir de revisión";$("#modo").textContent="Revisando como Scrum Master";tocar()}
-$("#fSprint").onchange=render;$("#fPersona").onchange=render;$("#busca").oninput=detalle;
+$("#fSprint").onchange=()=>{$("#fSprintRep").value=$("#fSprint").value;render()};$("#fSprintRep").onchange=()=>{$("#fSprint").value=$("#fSprintRep").value;render()};$("#fPersona").onchange=render;$("#busca").oninput=detalle;
 $("#pie").textContent="Período evaluado: desde el "+(D.desde||"").split("-").reverse().join("/")+" (Sprint 4). Generado automáticamente desde la API de Jira. Lo terminado antes de crear su registro en Jira usa su fecha real de entrega (etiqueta registro-retroactivo).";
 render();
 let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(render,150)});
