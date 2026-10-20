@@ -150,6 +150,23 @@ def instantanea(filas):
             "abiertas": sum(1 for f in filas if f["cat"] != "done" and f["tipo"] != "Epic"), "por_persona": por}
 
 
+REPARTO_DESDE = int(os.environ.get("TABLERO_REPARTO_DESDE", "110"))
+
+
+def congelar_repartos(filas, sprints):
+    """La primera vez que un sprint aparece activo (o cerrado) se guarda quién tenía cada tarea y cuántos SP valía.
+    Ese reparto inicial no se vuelve a tocar: sirve para comparar con quién la terminó al final."""
+    f_rep = RAIZ / "repartos.json"
+    repartos = json.loads(f_rep.read_text(encoding="utf-8")) if f_rep.exists() else {}
+    for s in sprints:
+        if s["id"] < REPARTO_DESDE or s["estado"] == "future" or str(s["id"]) in repartos:
+            continue
+        repartos[str(s["id"])] = {"fecha": dt.datetime.now(LIMA).strftime("%Y-%m-%d %H:%M"),
+                                  "tareas": {f["clave"]: [f["resp"], f["sp"]] for f in filas if f["hoja"] and f["sprint"] == s["id"]}}
+    f_rep.write_text(json.dumps(repartos, ensure_ascii=False, indent=1), encoding="utf-8")
+    return repartos
+
+
 def main():
     datos_f = RAIZ / "docs" / "datos.json"
     if "--sin-red" in sys.argv:
@@ -157,6 +174,7 @@ def main():
     else:
         filas, sprints, epicas = normalizar(leer_incidencias())
         filas, sprints = ventana(filas, sprints)
+        repartos = congelar_repartos(filas, sprints)
         hist_f = RAIZ / "historico.json"
         historico = json.loads(hist_f.read_text(encoding="utf-8")) if hist_f.exists() else []
         hoy = instantanea(filas)
@@ -165,7 +183,7 @@ def main():
         datos = {"generado": dt.datetime.now(LIMA).strftime("%Y-%m-%d %H:%M"), "sitio": SITIO, "proyecto": PROYECTO,
                  "equipo": EQUIPO, "desde": DESDE_FECHA,
                  "repo": os.environ.get("GITHUB_REPOSITORY", "LOAD-13/ayni-tablero"),
-                 "revision": os.environ.get("TABLERO_REVISION_URL", ""), "filas": filas, "sprints": sprints, "epicas": epicas, "historico": historico}
+                 "revision": os.environ.get("TABLERO_REVISION_URL", ""), "filas": filas, "sprints": sprints, "repartos": repartos, "epicas": epicas, "historico": historico}
         datos_f.parent.mkdir(exist_ok=True)
         datos_f.write_text(json.dumps(datos, ensure_ascii=False), encoding="utf-8")
     plantilla = (RAIZ / "plantilla.html").read_text(encoding="utf-8")

@@ -2,7 +2,7 @@ name: Tablero
 
 on:
   schedule:
-    - cron: "0 11 * * *"   # 06:00 en Lima, todos los días
+    - cron: "0 */2 * * *"   # cada 2 horas
   workflow_dispatch:
 
 permissions:
@@ -29,6 +29,6 @@ jobs:
         run: |
           git config user.name "LOAD-13"
           git config user.email "jloadenegri@gmail.com"
-          git add historico.json docs/
+          git add historico.json repartos.json docs/
           git diff --cached --quiet || git commit -m "chore(tablero): instantanea del $(TZ=America/Lima date +%F)"
           for i in 1 2 3; do git pull --rebase -X theirs && git push && exit 0; sleep 5; done; exit 1
