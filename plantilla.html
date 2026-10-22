@@ -32,7 +32,7 @@ main{max-width:1280px;margin:0 auto;padding:18px 16px}
 .tile span{font-size:11.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));gap:16px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:18px;margin-bottom:16px;min-width:0}
-.card h2{font:500 15px/1.3 "Geist Mono",monospace;margin-bottom:4px} .card-cab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px} .card-cab h2{margin:0} .card-cab label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-right:8px} .card .nota{font-size:12.5px;color:var(--t2);margin-bottom:10px}
+.card h2{font:500 15px/1.3 "Geist Mono",monospace;margin-bottom:4px} .card-cab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px} .card-cab h2{margin:0} .card-cab label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-right:8px} .rep-ctrl{display:flex;align-items:center;gap:14px;flex-wrap:wrap} .vista{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden} .vista button{border:0;border-radius:0;padding:6px 11px;font-size:12px;background:transparent;color:var(--t2)} .vista button[aria-pressed="true"]{background:var(--brand);color:#1b1305;font-weight:600} .card .nota{font-size:12.5px;color:var(--t2);margin-bottom:10px}
 .leyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--t2);margin:4px 0 8px}
 .leyenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 svg{display:block;max-width:100%;overflow:visible}
@@ -78,9 +78,9 @@ footer{max-width:1280px;margin:0 auto;padding:4px 16px 30px;font-size:11.5px;col
  </div></div></header>
 <main>
  <div class="tiles" id="tiles"></div>
- <div class="card"><div class="card-cab"><h2>Reparto por persona</h2><div><label for="fSprintRep">Sprint</label><select id="fSprintRep"></select></div></div>
+ <div class="card"><div class="card-cab"><h2>Reparto por persona</h2><div class="rep-ctrl"><div class="vista" id="vistaRep" role="group" aria-label="Vista del reparto" hidden><button type="button" data-v="plan">Cómo empezó</button><button type="button" data-v="actual" aria-pressed="true">Actual</button></div><label for="fSprintRep">Sprint</label><select id="fSprintRep"></select></div></div>
   <div class="nota">Story points de las tareas hoja (subtareas y tareas sin subtareas) asignadas a cada integrante en el filtro elegido. La línea marca la cuota equitativa (total ÷ 6).</div>
-  <div class="leyenda"><span><i style="background:var(--s1)"></i>Terminado</span><span><i style="background:var(--s2)"></i>En curso</span><span><i style="background:var(--rest)"></i>Por hacer</span></div>
+  <div class="leyenda" id="leyendaRep"><span><i style="background:var(--s1)"></i>Terminado</span><span><i style="background:var(--s2)"></i>En curso</span><span><i style="background:var(--rest)"></i>Por hacer</span></div>
   <div id="personas"></div><div class="tabla" id="tPersonas"></div></div>
  <div class="grid2">
   <div class="card"><h2>Burnup del proyecto</h2><div class="nota">Alcance (story points creados) frente a lo terminado, día a día.</div>
@@ -168,6 +168,7 @@ function barrasH(cont,filas,{max,cuota,fmt=v=>v}){
   r.onmouseleave=()=>{r.setAttribute("fill","transparent");ocultar()}});
 }
 // Render
+let vistaRep="actual";try{if(new URLSearchParams(location.search).get("vista")==="plan")vistaRep="plan"}catch(e){}
 function render(){
  $("#fSprintRep").value=$("#fSprint").value;
  const F=filtradas(),sum=a=>a.reduce((t,f)=>t+(f.sp||0),0);
@@ -185,14 +186,28 @@ function render(){
  const pers=D.equipo.map(p=>{const a=base.filter(f=>f.resp===p);const h=sum(a.filter(f=>f.cat==="done")),c=sum(a.filter(f=>f.cat==="indeterminate")),t=sum(a);
   return {etq:corto(p),nombre:p,total:t,h,c,n:a.length,val:a.filter(f=>f.validada).length,hechas:a.filter(f=>f.cat==="done").length,
    partes:[{n:"Terminado",v:h,c:"var(--s1)"},{n:"En curso",v:c,c:"var(--s2)"},{n:"Por hacer",v:t-h-c,c:"var(--rest)"}]}});
+ const R=s&&D.repartos?D.repartos[s]:null;
+ $("#vistaRep").hidden=!R;if(!R)vistaRep="actual";
+ $("#vistaRep").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===vistaRep)));
+ const plan=R&&vistaRep==="plan";
+ if(plan){
+  // La captura solo guarda la planificación: quién tenía cada tarea y cuánto valía. Sin colores de estado.
+  const porResp={};Object.values(R.tareas).forEach(([r,v])=>{(porResp[r]=porResp[r]||{n:0,t:0});porResp[r].n++;porResp[r].t+=v});
+  pers.forEach(p=>{const x=porResp[p.nombre]||{n:0,t:0};Object.assign(p,{total:x.t,n:x.n,partes:[{n:"Planificado",v:x.t,c:"var(--rest)"}]})});
+  $("#leyendaRep").innerHTML='<span><i style="background:var(--rest)"></i>Planificado al iniciar el sprint</span>';
+ }else $("#leyendaRep").innerHTML='<span><i style="background:var(--s1)"></i>Terminado</span><span><i style="background:var(--s2)"></i>En curso</span><span><i style="background:var(--rest)"></i>Por hacer</span>';
  const tEq=pers.reduce((t,p)=>t+p.total,0),cuota=tEq/D.equipo.length;
  barrasH("personas",pers,{max:Math.max(...pers.map(p=>p.total),cuota),cuota,fmt:v=>v+" SP"});
- const R=s&&D.repartos?D.repartos[s]:null;
  const iniR={};let movidas=0,nuevas=0;
  if(R){Object.values(R.tareas).forEach(([r,v])=>iniR[r]=(iniR[r]||0)+v);
   base.forEach(f=>{const t=R.tareas[f.clave];if(!t)nuevas++;else if(t[0]!==f.resp)movidas++})}
  const colIni=R?'<th class="n">SP al inicio</th><th class="n">Cambio</th>':"";
  const celIni=p=>{if(!R)return "";const a=iniR[p.nombre]||0,d=p.total-a;return `<td class="n">${a}</td><td class="n ${d>0?"med":d<0?"ok":""}">${d>0?"+":""}${d||"—"}</td>`};
+ if(plan){
+  $("#tPersonas").innerHTML=`<p class="inicial">Captura de la planificación del ${R.fecha.split(" ")[0].split("-").reverse().join("/")}: cómo empezó el sprint, antes de cualquier reasignación.</p><table><thead><tr><th>Integrante</th><th class="n">Tareas</th><th class="n">SP planificados</th><th class="n">vs. cuota</th></tr></thead><tbody>`+
+   pers.map(p=>{const d=p.total-cuota,cl=Math.abs(d)<=cuota*.1?"ok":(Math.abs(d)<=cuota*.25?"med":"mal");
+    return `<tr><td>${esc(p.nombre)}</td><td class="n">${p.n}</td><td class="n">${p.total}</td><td class="n ${cl}">${d>=0?"+":""}${Math.round(d)}</td></tr>`}).join("")+`</tbody></table>`;
+ }else
  $("#tPersonas").innerHTML=(R?`<p class="inicial">Reparto inicial congelado el ${R.fecha.split(" ")[0].split("-").reverse().join("/")} · ${movidas} tarea${movidas===1?"":"s"} reasignada${movidas===1?"":"s"} desde entonces${nuevas?` · ${nuevas} añadida${nuevas===1?"":"s"} después`:""}.</p>`:"")+`<table><thead><tr><th>Integrante</th><th class="n">Tareas</th>${colIni}<th class="n">SP asignados</th><th class="n">vs. cuota</th><th class="n">SP terminados</th><th class="n">% propio</th><th class="n">Validadas</th></tr></thead><tbody>`+
   pers.map(p=>{const d=p.total-cuota,cl=Math.abs(d)<=cuota*.1?"ok":(Math.abs(d)<=cuota*.25?"med":"mal");
    return `<tr><td>${esc(p.nombre)}</td><td class="n">${p.n}</td>${celIni(p)}<td class="n">${p.total}</td><td class="n ${cl}">${d>=0?"+":""}${Math.round(d)}</td><td class="n">${p.h}</td><td class="n">${p.total?Math.round(p.h/p.total*100):0} %</td><td class="n">${p.val} / ${p.hechas}</td></tr>`}).join("")+`</tbody></table>`;
@@ -264,6 +279,7 @@ $("#entrar").onclick=async()=>{const b=$("#entrar");b.disabled=true;$("#loginErr
  try{await entrar($("#usu").value.trim(),$("#cla").value);$("#cla").value="";$("#dlg").close()}catch(e){$("#loginErr").textContent=e.message}finally{b.disabled=false}};
 $("#cla").onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();$("#entrar").click()}};
 if(ss("tablero-rev")==="1"){sesion=true;$("#revisar").textContent="Salir de revisión";$("#modo").textContent="Revisando como Scrum Master";tocar()}
+$("#vistaRep").onclick=ev=>{const b=ev.target.closest("[data-v]");if(!b)return;vistaRep=b.dataset.v;render()};
 $("#fSprint").onchange=()=>{$("#fSprintRep").value=$("#fSprint").value;render()};$("#fSprintRep").onchange=()=>{$("#fSprint").value=$("#fSprintRep").value;render()};$("#fPersona").onchange=render;$("#busca").oninput=detalle;
 $("#pie").textContent="Período evaluado: desde el "+(D.desde||"").split("-").reverse().join("/")+" (Sprint 4). Generado automáticamente desde la API de Jira. Lo terminado antes de crear su registro en Jira usa su fecha real de entrega (etiqueta registro-retroactivo).";
 render();
