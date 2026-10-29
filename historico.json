@@ -482,11 +482,11 @@
  {
   "fecha": "2026-10-29",
   "sp_total": 444.0,
-  "sp_hecho": 213.0,
-  "abiertas": 100,
+  "sp_hecho": 227.0,
+  "abiertas": 96,
   "por_persona": {
    "Joaquín Loa Denegri": {
-    "hecho": 62.0,
+    "hecho": 76.0,
     "total": 126.0
    },
    "Kiara Santti Saavedra": {
