@@ -898,15 +898,15 @@
  {
   "fecha": "2026-11-11",
   "sp_total": 521.0,
-  "sp_hecho": 262.0,
-  "abiertas": 86,
+  "sp_hecho": 273.0,
+  "abiertas": 83,
   "por_persona": {
    "Joaquín Loa Denegri": {
     "hecho": 87.0,
     "total": 126.0
    },
    "Kiara Santti Saavedra": {
-    "hecho": 48.0,
+    "hecho": 59.0,
     "total": 83.0
    },
    "Eduardo Vargas Zumaeta": {
