@@ -897,7 +897,7 @@
  },
  {
   "fecha": "2026-11-11",
-  "sp_total": 444.0,
+  "sp_total": 521.0,
   "sp_hecho": 262.0,
   "abiertas": 86,
   "por_persona": {
@@ -907,23 +907,23 @@
    },
    "Kiara Santti Saavedra": {
     "hecho": 48.0,
-    "total": 71.0
+    "total": 83.0
    },
    "Eduardo Vargas Zumaeta": {
     "hecho": 30.0,
-    "total": 65.0
+    "total": 79.0
    },
    "Frank Sotomayor Suasnabar": {
     "hecho": 29.0,
-    "total": 59.0
+    "total": 76.0
    },
    "Fabián García Champi": {
     "hecho": 38.0,
-    "total": 64.0
+    "total": 81.0
    },
    "Gerardo Socualaya Mandamiento": {
     "hecho": 30.0,
-    "total": 59.0
+    "total": 76.0
    }
   }
  }
