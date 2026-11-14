@@ -962,8 +962,8 @@
  {
   "fecha": "2026-11-13",
   "sp_total": 521.0,
-  "sp_hecho": 281.0,
-  "abiertas": 81,
+  "sp_hecho": 321.0,
+  "abiertas": 74,
   "por_persona": {
    "Joaquín Loa Denegri": {
     "hecho": 87.0,
@@ -978,7 +978,7 @@
     "total": 79.0
    },
    "Frank Sotomayor Suasnabar": {
-    "hecho": 29.0,
+    "hecho": 53.0,
     "total": 76.0
    },
    "Fabián García Champi": {
@@ -986,7 +986,7 @@
     "total": 81.0
    },
    "Gerardo Socualaya Mandamiento": {
-    "hecho": 30.0,
+    "hecho": 46.0,
     "total": 76.0
    }
   }
