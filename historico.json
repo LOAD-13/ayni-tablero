@@ -1378,11 +1378,11 @@
  {
   "fecha": "2026-11-26",
   "sp_total": 553.0,
-  "sp_hecho": 448.0,
-  "abiertas": 40,
+  "sp_hecho": 484.0,
+  "abiertas": 21,
   "por_persona": {
    "Joaquín Loa Denegri": {
-    "hecho": 132.0,
+    "hecho": 158.0,
     "total": 158.0
    },
    "Kiara Santti Saavedra": {
@@ -1398,7 +1398,7 @@
     "total": 76.0
    },
    "Fabián García Champi": {
-    "hecho": 44.0,
+    "hecho": 54.0,
     "total": 81.0
    },
    "Gerardo Socualaya Mandamiento": {
