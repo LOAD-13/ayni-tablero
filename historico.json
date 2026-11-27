@@ -1406,5 +1406,37 @@
     "total": 76.0
    }
   }
+ },
+ {
+  "fecha": "2026-11-27",
+  "sp_total": 553.0,
+  "sp_hecho": 507.0,
+  "abiertas": 16,
+  "por_persona": {
+   "Joaquín Loa Denegri": {
+    "hecho": 158.0,
+    "total": 158.0
+   },
+   "Kiara Santti Saavedra": {
+    "hecho": 80.0,
+    "total": 83.0
+   },
+   "Eduardo Vargas Zumaeta": {
+    "hecho": 79.0,
+    "total": 79.0
+   },
+   "Frank Sotomayor Suasnabar": {
+    "hecho": 73.0,
+    "total": 76.0
+   },
+   "Fabián García Champi": {
+    "hecho": 54.0,
+    "total": 81.0
+   },
+   "Gerardo Socualaya Mandamiento": {
+    "hecho": 63.0,
+    "total": 76.0
+   }
+  }
  }
 ]
